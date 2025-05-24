@@ -184,13 +184,49 @@
             text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
             text-align: center;
         }
+
+        /* Overlay for mobile */
+        #startOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            cursor: pointer;
+        }
+        
+        #startButton {
+            background-color: transparent;
+            border: 2px solid #ffd700;
+            color: #ffd700;
+            padding: 15px 30px;
+            font-size: 1.5em;
+            font-family: 'Dancing Script', cursive;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        #startButton:hover {
+            background-color: rgba(255, 215, 0, 0.2);
+        }
     </style>
 </head>
 <body>
     <!-- Background Music -->
-    <audio id="bgMusic" autoplay loop>
+    <audio id="bgMusic" loop>
         <source src="https://cdn.jsdelivr.net/gh/Ecinar358/BuBirYazGecesiRuyasi@main/mariage-damour-2186.mp3" type="audio/mpeg">
     </audio>
+
+    <!-- Start Overlay for Mobile -->
+    <div id="startOverlay">
+        <button id="startButton">Dokunun Başlayalım</button>
+    </div>
 
     <!-- Gece Elementleri -->
     <div class="moon"></div>
@@ -286,33 +322,42 @@
             nightSky.appendChild(shootingStar);
         }
 
-        // Music handling - optimized for mobile autoplay
+        // Music handling
         document.addEventListener('DOMContentLoaded', function() {
             const bgMusic = document.getElementById('bgMusic');
+            const startOverlay = document.getElementById('startOverlay');
+            const startButton = document.getElementById('startButton');
+            
             bgMusic.volume = 0.3;
             
-            // Mobile browsers often allow autoplay when muted first
-            bgMusic.muted = true;
-            const playPromise = bgMusic.play();
+            // Try autoplay on desktop
+            bgMusic.play().catch(e => {
+                console.log('Autoplay blocked, showing overlay');
+            });
             
-            if (playPromise !== undefined) {
-                playPromise.then(_ => {
-                    // Autoplay started, unmute
-                    bgMusic.muted = false;
-                })
-                .catch(error => {
-                    // If autoplay fails, try again on user interaction
-                    const playOnInteraction = () => {
-                        bgMusic.play();
-                        bgMusic.muted = false;
-                        document.removeEventListener('click', playOnInteraction);
-                        document.removeEventListener('touchstart', playOnInteraction);
-                    };
-                    
-                    document.addEventListener('click', playOnInteraction, { once: true });
-                    document.addEventListener('touchstart', playOnInteraction, { once: true });
-                });
-            }
+            // Handle overlay click
+            startButton.addEventListener('click', function() {
+                bgMusic.play()
+                    .then(() => {
+                        startOverlay.style.display = 'none';
+                    })
+                    .catch(error => {
+                        console.log('Playback failed:', error);
+                        startButton.textContent = 'Lütfen Tekrar Deneyin';
+                    });
+            });
+            
+            // Also allow clicking anywhere on overlay
+            startOverlay.addEventListener('click', function() {
+                bgMusic.play()
+                    .then(() => {
+                        startOverlay.style.display = 'none';
+                    })
+                    .catch(error => {
+                        console.log('Playback failed:', error);
+                        startButton.textContent = 'Lütfen Tekrar Deneyin';
+                    });
+            });
         });
     </script>
 </body>
