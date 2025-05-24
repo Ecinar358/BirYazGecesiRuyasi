@@ -286,23 +286,33 @@
             nightSky.appendChild(shootingStar);
         }
 
-        // Music handling
+        // Music handling - optimized for mobile autoplay
         document.addEventListener('DOMContentLoaded', function() {
             const bgMusic = document.getElementById('bgMusic');
             bgMusic.volume = 0.3;
             
-            // Try autoplay
-            bgMusic.play().catch(e => {
-                // If blocked, play on any user interaction
-                const playOnInteraction = () => {
-                    bgMusic.play();
-                    document.removeEventListener('click', playOnInteraction);
-                    document.removeEventListener('touchstart', playOnInteraction);
-                };
-                
-                document.addEventListener('click', playOnInteraction, { once: true });
-                document.addEventListener('touchstart', playOnInteraction, { once: true });
-            });
+            // Mobile browsers often allow autoplay when muted first
+            bgMusic.muted = true;
+            const playPromise = bgMusic.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {
+                    // Autoplay started, unmute
+                    bgMusic.muted = false;
+                })
+                .catch(error => {
+                    // If autoplay fails, try again on user interaction
+                    const playOnInteraction = () => {
+                        bgMusic.play();
+                        bgMusic.muted = false;
+                        document.removeEventListener('click', playOnInteraction);
+                        document.removeEventListener('touchstart', playOnInteraction);
+                    };
+                    
+                    document.addEventListener('click', playOnInteraction, { once: true });
+                    document.addEventListener('touchstart', playOnInteraction, { once: true });
+                });
+            }
         });
     </script>
 </body>
